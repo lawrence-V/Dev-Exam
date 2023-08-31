@@ -5,4 +5,6 @@ USERS = [
     {"id": "4", "name": "John Smith", "age": 28, "occupation": "Architect"},
     {"id": "5", "name": "Jane Smith", "age": 31, "occupation": "Manager"},
     {"id": "6", "name": "Joe Smith", "age": 24, "occupation": "Designer"},
+    {"id": "6", "name": "Joe Smith", "age": 24, "occupation": "Designer"},
+
 ]

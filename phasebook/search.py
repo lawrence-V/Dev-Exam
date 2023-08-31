@@ -1,30 +1,53 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 from .data.search_data import USERS
-
 
 bp = Blueprint("search", __name__, url_prefix="/search")
 
 
 @bp.route("")
 def search():
-    return search_users(request.args.to_dict()), 200
+    args = request.args.to_dict()
+    search_results = search_users(args)
+
+    if not search_results:
+        return jsonify({"message": "No matching users found"}), 404
+
+    return jsonify(search_results), 200
 
 
 def search_users(args):
-    """Search users database
+    included_users = set()
+    search_results = []
 
-    Parameters:
-        args: a dictionary containing the following search parameters:
-            id: string
-            name: string
-            age: string
-            occupation: string
+    for user in USERS:
+        user_info = (user['name'], user['age'], user['occupation'])
 
-    Returns:
-        a list of users that match the search parameters
-    """
+        if user_info in included_users:
+            continue
 
-    # Implement search here!
+        if 'id' in args and user['id'] == args['id']:
+            search_results.append({"priority": "id", "user": user})
+            included_users.add(user_info)
+        elif 'name' in args and args['name'].lower() in user['name'].lower():
+            search_results.append({"priority": "name", "user": user})
+            included_users.add(user_info)
+        elif 'age' in args and (
+            str(user['age']) == args['age'] or
+            str(user['age'] + 1) == args['age'] or
+            str(user['age'] - 1) == args['age']
+        ):
+            search_results.append({"priority": "age", "user": user})
+            included_users.add(user_info)
+        elif 'occupation' in args and args['occupation'].lower() in user['occupation'].lower():
+            search_results.append({"priority": "occupation", "user": user})
+            included_users.add(user_info)
 
-    return USERS
+    sorted_results = sorted(search_results, key=lambda x: (
+        x['priority'] != 'id',
+        x['priority'] != 'name',
+        x['priority'] != 'age',
+        x['priority'] != 'occupation'
+    ))
+
+    return [result['user'] for result in sorted_results]
